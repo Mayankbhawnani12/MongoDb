@@ -1,0 +1,72 @@
+package project;
+
+import com.mongodb.client.*;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import java.util.Scanner;
+
+public class UserAuthenticationMongoDB {
+
+    private static final String DATABASE_NAME = "userDB";
+    private static final String COLLECTION_NAME = "users";
+    private static MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017");
+    private static MongoDatabase database = mongoClient.getDatabase(DATABASE_NAME);
+    private static MongoCollection<Document> collection = database.getCollection(COLLECTION_NAME);
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        int option;
+
+        do {
+            menu();
+            option = input.nextInt();
+            input.nextLine(); // Consume newline
+
+            switch (option) {
+                case 1:
+                    signUp(input);
+                    break;
+                case 2:
+                    signIn(input);
+                    break;
+                default:
+                    System.out.println("\nInvalid input\n");
+                    break;
+            }
+        } while (true);
+    }
+
+    public static void menu() {
+        System.out.println("MENU");
+        System.out.println("1: Sign Up");
+        System.out.println("2: Sign In");
+        System.out.print("Enter your selection: ");
+    }
+
+    public static void signUp(Scanner input) {
+        System.out.print("Enter Username: ");
+        String username = input.nextLine();
+        System.out.print("Enter Password: ");
+        String password = input.nextLine();
+
+        Document user = new Document("username", username)
+                .append("password", password);
+        collection.insertOne(user);
+        System.out.println("User signed up successfully.");
+    }
+
+    public static void signIn(Scanner input) {
+        System.out.print("Enter Username: ");
+        String username = input.nextLine();
+        System.out.print("Enter Password: ");
+        String password = input.nextLine();
+
+        Document user = collection.find(Filters.and(Filters.eq("username", username), Filters.eq("password", password))).first();
+        
+        if (user != null) {
+            System.out.println("Sign In Successful! Welcome, " + username);
+        } else {
+            System.out.println("Invalid username or password.");
+        }
+    }
+}
